@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Viewport Cube</title>
+	<style type="text/css">
+		#canvas{
+			position: absolute;
+			width: 150px;
+			height: 150px;
+		}
+	</style>
+</head>
+<body onload="run();">
+	<div id='canvas'></div>
+	<script type="text/javascript" src='three.js'></script>
+	<script type="text/javascript">
+		var renderer,
+			canvas,
+			scene,
+			camera,
+			width,
+			height;
+
+		//for spin cube
+		var cube;
+		var mouse_down = false,
+			pre_mouse = {x:0,y:0},
+			mouse = {x:0,y:0},
+			theta = 0,
+			phi = 0,
+			radious = 10,
+			speed = 0.8;
+
+		function init() {
+			width = document.getElementById('canvas').clientWidth;
+			height =  document.getElementById('canvas').clientHeight;
+			renderer = new THREE.WebGLRenderer({
+				antialias:true,
+				alpha: true
+			});
+			renderer.setPixelRatio(window.devicePixelRatio);
+			renderer.setSize(width,height);
+			document.getElementById("canvas").appendChild(renderer.domElement);
+			renderer.setClearColor(0xffffff,1.0);
+
+			//setup scene
+			scene = new THREE.Scene();
+
+			//test cube
+			cube = new THREE.Mesh(
+				new THREE.CubeGeometry(1,1,1),
+				new THREE.MeshLambertMaterial({
+					color: 0xe6e6e6
+				})
+			);
+
+			camera = new THREE.OrthographicCamera();
+			camera.position.set(0, 0, radious);
+			camera.zoom = 160;
+
+			scene.add(cube);
+
+			window.onmousedown = onCMouseDown;
+			window.onmousemove = onCMouseMove;
+			window.onmouseup = onCMouseUp;
+		}
+
+		function onCMouseDown(event){
+			event.preventDefault();
+			mouse_down = true;
+			mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
+			mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
+			pre_mouse.x = mouse.x;
+			pre_mouse.y = mouse.y;
+			renderer.render( scene, camera );
+		}
+
+		function onCMouseMove(event){
+			event.preventDefault();
+			mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
+			mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
+			if(mouse_down){
+				var dx = mouse.x - pre_mouse.x;
+					dy = mouse.y - pre_mouse.y;
+				// console.log(dx,dy)
+				rotate(dx,dy);
+			}
+
+			pre_mouse.x = mouse.x;
+			pre_mouse.y = mouse.y;
+			renderer.render( scene, camera );
+		}
+
+		function onCMouseUp(event){
+			event.preventDefault();
+			mouse_down = false;
+			renderer.render( scene, camera );
+		}
+
+		function rotate(dx,dy){
+			var PI_2 = Math.PI *2;
+			theta -= (PI_2 * speed * dx);
+			phi -= (PI_2 * speed * dy);
+			phi = Math.min( Math.PI, Math.max( 0, phi ) );
+			camera.position.x = radious * Math.sin( theta )* Math.cos( phi );
+			camera.position.y = radious * Math.sin( phi );
+			camera.position.z = radious * Math.cos( theta )* Math.cos( phi);
+			camera.lookAt(new THREE.Vector3(0, 0, 0));
+			camera.updateMatrix();
+			console.log()
+		}
+
+		var animate = function () {
+			requestAnimationFrame( animate );
+			renderer.render( scene, camera );
+		};
+
+		function run(){
+			init();
+			animate();
+		}
+
+	</script>
+</body>
+</html>
